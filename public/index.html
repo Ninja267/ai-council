@@ -43,28 +43,45 @@
         <div class="key-field">
           <label for="key-anthropic">🎩 Claude — Anthropic</label>
           <input id="key-anthropic" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-..." />
-          <a class="key-link" href="https://console.anthropic.com/" target="_blank" rel="noopener noreferrer">Lấy key</a>
+          <div class="key-field-actions">
+            <button class="key-test-btn" type="button" data-test="anthropic">Test</button>
+            <a class="key-link" href="https://console.anthropic.com/" target="_blank" rel="noopener noreferrer">Lấy key</a>
+          </div>
+          <div class="key-test-result" data-result-for="anthropic"></div>
         </div>
 
         <div class="key-field">
           <label for="key-openai">🤓 ChatGPT — OpenAI</label>
           <input id="key-openai" type="password" autocomplete="off" spellcheck="false" placeholder="sk-..." />
-          <a class="key-link" href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer">Lấy key</a>
+          <div class="key-field-actions">
+            <button class="key-test-btn" type="button" data-test="openai">Test</button>
+            <a class="key-link" href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer">Lấy key</a>
+          </div>
+          <div class="key-test-result" data-result-for="openai"></div>
         </div>
 
         <div class="key-field">
           <label for="key-google">💎 Gemini — Google AI Studio</label>
           <input id="key-google" type="password" autocomplete="off" spellcheck="false" placeholder="AIza..." />
-          <a class="key-link" href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Lấy key</a>
+          <div class="key-field-actions">
+            <button class="key-test-btn" type="button" data-test="google">Test</button>
+            <a class="key-link" href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Lấy key</a>
+          </div>
+          <div class="key-test-result" data-result-for="google"></div>
         </div>
 
         <div class="key-field">
           <label for="key-xai">😏 Grok — xAI</label>
           <input id="key-xai" type="password" autocomplete="off" spellcheck="false" placeholder="xai-..." />
-          <a class="key-link" href="https://console.x.ai/" target="_blank" rel="noopener noreferrer">Lấy key</a>
+          <div class="key-field-actions">
+            <button class="key-test-btn" type="button" data-test="xai">Test</button>
+            <a class="key-link" href="https://console.x.ai/" target="_blank" rel="noopener noreferrer">Lấy key</a>
+          </div>
+          <div class="key-test-result" data-result-for="xai"></div>
         </div>
 
         <footer class="settings-footer">
+          <button class="btn-secondary" id="settings-test-all" type="button">Test tất cả</button>
           <button class="btn-secondary" id="settings-show-toggle" type="button">Hiện keys</button>
           <button class="btn-secondary" id="settings-clear" type="button">Xóa hết</button>
           <button class="btn-primary" id="settings-save" type="button">Lưu</button>

@@ -144,6 +144,53 @@
     settingsShowToggle.textContent = keysVisible ? 'Ẩn keys' : 'Hiện keys';
   });
 
+  // ---- Test key buttons ----
+  async function testKey(provider) {
+    const btn = document.querySelector(`.key-test-btn[data-test="${provider}"]`);
+    const resultDiv = document.querySelector(`.key-test-result[data-result-for="${provider}"]`);
+    if (!btn || !resultDiv) return;
+
+    const apiKey = (keyInputs[provider]?.value || '').trim();
+    btn.disabled = true;
+    const prevLabel = btn.textContent;
+    btn.textContent = '...';
+    resultDiv.className = 'key-test-result loading';
+    resultDiv.textContent = 'đang thử…';
+
+    try {
+      const r = await fetch('/api/test-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider, apiKey })
+      });
+      const j = await r.json().catch(() => ({ ok: false, error: 'phản hồi không hợp lệ' }));
+
+      if (j.ok) {
+        resultDiv.className = 'key-test-result ok';
+        resultDiv.textContent = `✓ OK${j.model ? ` — model: ${j.model}` : ''}`;
+      } else {
+        resultDiv.className = 'key-test-result fail';
+        resultDiv.textContent = `✗ ${j.error || 'lỗi'}`;
+      }
+    } catch (err) {
+      resultDiv.className = 'key-test-result fail';
+      resultDiv.textContent = '✗ ' + (err?.message || 'lỗi mạng');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = prevLabel;
+    }
+  }
+
+  document.querySelectorAll('.key-test-btn').forEach((btn) => {
+    btn.addEventListener('click', () => testKey(btn.dataset.test));
+  });
+
+  document.getElementById('settings-test-all')?.addEventListener('click', async () => {
+    for (const p of PROVIDERS) {
+      await testKey(p);
+    }
+  });
+
   fetchHealth();
 
   let currentBubble = null;

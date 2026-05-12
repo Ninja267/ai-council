@@ -5,6 +5,10 @@ import rateLimit from 'express-rate-limit';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { runCouncil } from './lib/council.js';
+import { testClaude } from './lib/providers/claude.js';
+import { testOpenAI } from './lib/providers/openai.js';
+import { testGemini } from './lib/providers/gemini.js';
+import { testGrok } from './lib/providers/grok.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -48,6 +52,49 @@ app.use(
 );
 
 app.use(express.static(path.join(__dirname, 'public')));
+
+const KEY_TESTERS = {
+  anthropic: testClaude,
+  openai: testOpenAI,
+  google: testGemini,
+  xai: testGrok
+};
+
+// Extract a readable error string from various SDK error shapes (some
+// providers nest JSON inside the message).
+function readableError(err) {
+  let msg = err?.message || String(err);
+  try {
+    const m = msg.match(/\{[\s\S]*\}/);
+    if (m) {
+      const parsed = JSON.parse(m[0]);
+      const inner = parsed?.error?.message;
+      if (inner) {
+        try {
+          const innerParsed = JSON.parse(inner);
+          if (innerParsed?.error?.message) return innerParsed.error.message;
+        } catch (_) {}
+        return inner;
+      }
+    }
+  } catch (_) {}
+  return msg.length > 300 ? msg.slice(0, 300) + '...' : msg;
+}
+
+app.post('/api/test-key', async (req, res) => {
+  const provider = req.body?.provider;
+  if (!provider || !KEY_TESTERS[provider]) {
+    return res.status(400).json({ ok: false, error: 'invalid provider' });
+  }
+
+  const userKey = sanitizeKey(req.body?.apiKey);
+  try {
+    const result = await KEY_TESTERS[provider]({ apiKey: userKey });
+    res.json({ ok: true, model: result?.model || null });
+  } catch (err) {
+    res.json({ ok: false, error: readableError(err), model: null });
+  }
+});
 
 app.get('/api/health', (req, res) => {
   res.json({

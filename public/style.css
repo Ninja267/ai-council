@@ -464,6 +464,11 @@ body {
   background: var(--bg);
 }
 .key-field input:focus { border-color: #6366f1; background: #fff; }
+.key-field-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
 .key-link {
   font-size: 11px;
   color: #6366f1;
@@ -472,6 +477,32 @@ body {
   padding: 4px 6px;
 }
 .key-link:hover { text-decoration: underline; }
+.key-test-btn {
+  font-size: 11px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.12s, border-color 0.12s, opacity 0.12s;
+  white-space: nowrap;
+}
+.key-test-btn:hover:not(:disabled) { background: var(--bg); border-color: #6366f1; }
+.key-test-btn:disabled { opacity: 0.55; cursor: wait; }
+.key-test-result {
+  grid-column: 1 / -1;
+  font-size: 11.5px;
+  min-height: 0;
+  padding: 0;
+  line-height: 1.45;
+  word-break: break-word;
+  transition: padding 0.1s;
+}
+.key-test-result.ok    { color: #14774a; padding-top: 4px; }
+.key-test-result.fail  { color: #b8341c; padding-top: 4px; }
+.key-test-result.loading { color: var(--muted); padding-top: 4px; font-style: italic; }
 .settings-footer {
   display: flex;
   justify-content: flex-end;
