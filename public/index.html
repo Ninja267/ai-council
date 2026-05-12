@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="referrer" content="no-referrer" />
+  <title>AI Council</title>
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%96%EF%B8%8F%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="title-row">
+        <span class="logo" aria-hidden="true">⚖️</span>
+        <div class="title-text">
+          <h1>AI Council</h1>
+          <div class="members" id="members">
+            <span class="chip chip-claude">🎩 Claude <small>(chủ tọa)</small></span>
+            <span class="chip chip-chatgpt">🤓 ChatGPT</span>
+            <span class="chip chip-gemini">💎 Gemini</span>
+            <span class="chip chip-grok">😏 Grok</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="chat" id="chat" aria-live="polite">
+      <div class="welcome" id="welcome">
+        <div class="welcome-icon">⚖️</div>
+        <h2>Chào mừng đến với AI Council</h2>
+        <p>Đặt một câu hỏi và chứng kiến 4 AI tranh luận trong 2 vòng để cùng đưa ra câu trả lời.</p>
+        <p class="subtle">Ask anything and watch 4 AIs debate across 2 rounds.</p>
+        <div class="examples">
+          <button class="example" type="button">Có nên học một ngôn ngữ lập trình mới năm 2026 không?</button>
+          <button class="example" type="button">Is remote work better than office work?</button>
+          <button class="example" type="button">Mèo hay chó thông minh hơn?</button>
+        </div>
+      </div>
+    </main>
+
+    <footer class="composer">
+      <form id="form" autocomplete="off">
+        <input
+          id="input"
+          type="text"
+          name="question"
+          placeholder="Hỏi Council bất cứ điều gì..."
+          maxlength="2000"
+          autofocus
+          required
+        />
+        <button type="submit" id="send" aria-label="Gửi">
+          <span class="send-label">Hỏi</span>
+        </button>
+      </form>
+      <div class="footnote">4 AI · 2 vòng tranh luận · Claude làm chủ tọa</div>
+    </footer>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
