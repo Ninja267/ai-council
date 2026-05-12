@@ -159,11 +159,32 @@ body {
   background: #eee;
 }
 .bubble-content { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.bubble-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 10px;
+  flex-wrap: wrap;
+}
 .bubble-name {
   font-size: 11px;
   color: var(--muted);
-  margin-left: 10px;
   font-weight: 600;
+}
+.stance-badge {
+  font-size: 10px;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+.badge-rebut {
+  background: #ffe5dc;
+  color: #b8341c;
+}
+.badge-support {
+  background: #dcf3e6;
+  color: #14774a;
 }
 .bubble-text {
   padding: 10px 14px;
@@ -175,6 +196,51 @@ body {
   word-wrap: break-word;
   overflow-wrap: anywhere;
   min-height: 1em;
+}
+
+/* Stance accents on the bubble itself */
+.bubble.stance-rebut .bubble-text {
+  border-left: 3px solid #e0563f;
+}
+.bubble.stance-support .bubble-text {
+  border-left: 3px solid #15a86b;
+}
+
+/* "Thinking" bubble (turn_check) */
+.bubble.thinking .bubble-text {
+  font-style: italic;
+  color: var(--muted);
+  background: transparent;
+  border: 1px dashed #d0d4d9;
+  padding: 6px 12px;
+  font-size: 13px;
+}
+.thinking-dots {
+  display: inline-block;
+  animation: thinking-dots-anim 1.4s steps(4, end) infinite;
+  width: 0;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+@keyframes thinking-dots-anim {
+  0%   { width: 0; }
+  100% { width: 14px; }
+}
+
+/* "Passed" bubble (turn_pass) */
+.bubble.pass .bubble-text {
+  background: transparent;
+  border: 1px dashed #d0d4d9;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: var(--muted);
+  font-style: italic;
+  opacity: 0.85;
+}
+.bubble.pass .bubble-text em {
+  font-style: normal;
+  font-weight: 600;
+  color: #8a8d91;
 }
 .bubble.typing .bubble-text::after {
   content: '▍';

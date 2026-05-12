@@ -9,15 +9,21 @@ lời câu hỏi của bạn.
 - **Gemini** 💎 - thực dụng, data-driven, lạnh lùng
 - **Grok** 😏 - contrarian, cà khịa, dám nói điều phũ
 
-Mỗi câu hỏi đi qua 4 giai đoạn:
+Mỗi câu hỏi đi qua tối đa **6 giai đoạn**:
 
-1. **Khai mạc** - Claude mở phiên
-2. **Vòng 1: Lập trường** - ChatGPT, Gemini, Grok lần lượt đưa quan điểm
-3. **Vòng 2: Phản biện** - 3 thành viên phản biện / tinh chỉnh
-4. **Phán quyết** - Claude tổng hợp & trả lời chính thức
+1. 🎬 **Khai mạc** - Claude mở phiên & mời 3 debater phát biểu.
+2. 🗣️ **Vòng 1: Lập trường** - ChatGPT, Gemini, Grok **bắt buộc** phát biểu lập trường ban đầu.
+3. ⚔️ **Vòng 2-4: Tranh luận tự do** - Đến lượt mỗi debater, model TỰ QUYẾT ĐỊNH:
+   - `[PASS]` - bỏ qua (không có gì mới / đồng tình).
+   - `[REBUT]` 🔥 - phản biện ai đó.
+   - `[SUPPORT]` 🤝 - ủng hộ ai đó và bổ sung lý lẽ giúp họ.
+   Nếu trong một vòng không ai chọn nói (tất cả PASS), phiên kết thúc sớm.
+4. ⚖️ **Phán quyết** - Claude tổng hợp các liên minh ỦNG HỘ và các điểm PHẢN BIỆN để đưa ra câu trả lời cuối cùng.
 
 Tất cả các bước được **stream theo thời gian thực** (Server-Sent Events) để
-bạn thấy từng tin nhắn được "gõ" ra như chat nhóm thật.
+bạn thấy từng tin nhắn được "gõ" ra như chat nhóm thật. Khi đến lượt model
+phải quyết định, bạn thấy bubble "đang cân nhắc..." trước khi nó bùng nổ
+thành phản biện, ủng hộ, hoặc gửi tin nhắn bỏ qua nhẹ nhàng.
 
 ---
 
@@ -111,8 +117,10 @@ Trả về `text/event-stream` với các sự kiện:
 
 | Event | Payload | Khi nào |
 |---|---|---|
-| `phase` | `{ name, label }` | Bắt đầu một giai đoạn (opening / round1 / round2 / verdict) |
-| `speaker_start` | `{ id, name, avatar, color, role, stage }` | Một model bắt đầu nói |
+| `phase` | `{ name, label }` | Bắt đầu một giai đoạn (opening / round1-4 / consensus / verdict) |
+| `turn_check` | `{ id, name, avatar, color, role, stage }` | Đến lượt model ở vòng 2-4, đang quyết định PASS/REBUT/SUPPORT |
+| `turn_pass` | `{ id, name, reason }` | Model đã chọn bỏ qua |
+| `speaker_start` | `{ id, name, avatar, color, role, stage, stance }` | Model bắt đầu phát biểu. `stance` là `null` / `'REBUT'` / `'SUPPORT'` |
 | `chunk` | `{ id, text }` | Một mẩu token mới |
 | `speaker_end` | `{ id }` | Model nói xong |
 | `error` | `{ message }` | Lỗi xảy ra |

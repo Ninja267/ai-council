@@ -7,10 +7,14 @@
   const sendBtn = document.getElementById('send');
   const welcome = document.getElementById('welcome');
 
+  const STANCE_BADGE = {
+    REBUT: { text: '🔥 phản biện', cls: 'badge-rebut' },
+    SUPPORT: { text: '🤝 ủng hộ', cls: 'badge-support' }
+  };
+
   let currentBubble = null;
   let isRunning = false;
 
-  // Wire up example buttons.
   document.querySelectorAll('.example').forEach((btn) => {
     btn.addEventListener('click', () => {
       input.value = btn.textContent.trim();
@@ -73,7 +77,6 @@
       if (done) break;
       buffer += decoder.decode(value, { stream: true });
 
-      // SSE messages are separated by a blank line.
       const parts = buffer.split('\n\n');
       buffer = parts.pop() ?? '';
 
@@ -85,7 +88,7 @@
   }
 
   function parseSSE(raw) {
-    if (!raw || raw.startsWith(':')) return null; // heartbeat comment
+    if (!raw || raw.startsWith(':')) return null;
     const lines = raw.split('\n');
     let event = 'message';
     let dataStr = '';
@@ -106,14 +109,33 @@
       case 'phase':
         addPhase(data.label);
         break;
+      case 'turn_check':
+        currentBubble = addThinkingBubble(data);
+        break;
+      case 'turn_pass':
+        if (currentBubble && currentBubble.dataset.id === data.id) {
+          transformToPass(currentBubble, data.reason);
+        } else {
+          addStandalonePass(data);
+        }
+        currentBubble = null;
+        break;
       case 'speaker_start':
-        currentBubble = addBubble(data);
+        if (
+          currentBubble &&
+          currentBubble.dataset.id === data.id &&
+          currentBubble.classList.contains('thinking')
+        ) {
+          transformToSpeaking(currentBubble, data);
+        } else {
+          currentBubble = addBubble(data);
+        }
         break;
       case 'chunk':
         if (currentBubble) appendChunk(currentBubble, data.text);
         break;
       case 'speaker_end':
-        if (currentBubble) currentBubble.classList.remove('typing');
+        if (currentBubble) currentBubble.classList.remove('typing', 'pending');
         currentBubble = null;
         break;
       case 'error':
@@ -154,9 +176,9 @@
     scrollDown();
   }
 
-  function addBubble(speaker) {
+  // ---- Bubble factory: builds the avatar + name-row shell. ----
+  function buildBubbleShell(speaker) {
     const div = document.createElement('div');
-    div.className = 'bubble typing pending';
     div.dataset.id = speaker.id;
 
     const avatar = document.createElement('div');
@@ -166,26 +188,108 @@
     const content = document.createElement('div');
     content.className = 'bubble-content';
 
+    const nameRow = document.createElement('div');
+    nameRow.className = 'bubble-name-row';
+
     const name = document.createElement('span');
     name.className = 'bubble-name';
     name.textContent = speaker.name;
+    nameRow.appendChild(name);
 
     const textBox = document.createElement('div');
     textBox.className = 'bubble-text';
 
-    content.appendChild(name);
+    content.appendChild(nameRow);
     content.appendChild(textBox);
     div.appendChild(avatar);
     div.appendChild(content);
 
+    return { div, nameRow, textBox };
+  }
+
+  function applyStanceBadge(nameRow, stance) {
+    if (!stance || !STANCE_BADGE[stance]) return;
+    // Drop any existing badge first.
+    nameRow.querySelector('.stance-badge')?.remove();
+    const badge = document.createElement('span');
+    const conf = STANCE_BADGE[stance];
+    badge.className = 'stance-badge ' + conf.cls;
+    badge.textContent = conf.text;
+    nameRow.appendChild(badge);
+  }
+
+  function applyStanceClass(div, stance) {
+    div.classList.remove('stance-rebut', 'stance-support');
+    if (stance === 'REBUT') div.classList.add('stance-rebut');
+    if (stance === 'SUPPORT') div.classList.add('stance-support');
+  }
+
+  // Speaker is going to stream full content (no "thinking" phase preceded it).
+  function addBubble(speaker) {
+    const { div, nameRow, textBox } = buildBubbleShell(speaker);
+    div.className = 'bubble typing pending';
+    div.dataset.id = speaker.id;
+    applyStanceClass(div, speaker.stance);
+    applyStanceBadge(nameRow, speaker.stance);
+    // Keep textBox referenced via class lookup later in appendChunk.
+    void textBox;
     chat.appendChild(div);
     scrollDown();
     return div;
   }
 
+  // Rounds 2-4: model is deciding. Show "đang cân nhắc..." italic bubble.
+  function addThinkingBubble(speaker) {
+    const { div, nameRow, textBox } = buildBubbleShell(speaker);
+    div.className = 'bubble thinking';
+    div.dataset.id = speaker.id;
+    void nameRow;
+    textBox.textContent = 'đang cân nhắc';
+    const dots = document.createElement('span');
+    dots.className = 'thinking-dots';
+    dots.textContent = '...';
+    textBox.appendChild(dots);
+    chat.appendChild(div);
+    scrollDown();
+    return div;
+  }
+
+  // turn_pass: convert the thinking bubble into a passed-turn indicator.
+  function transformToPass(bubble, reason) {
+    bubble.classList.remove('thinking');
+    bubble.classList.add('pass');
+    const textBox = bubble.querySelector('.bubble-text');
+    textBox.textContent = '';
+    const passLabel = document.createElement('em');
+    passLabel.textContent = 'đã bỏ qua';
+    textBox.appendChild(passLabel);
+    if (reason) {
+      const reasonNode = document.createTextNode(' — ' + reason);
+      textBox.appendChild(reasonNode);
+    }
+    scrollDown();
+  }
+
+  // turn_pass arriving without a preceding turn_check (shouldn't happen, but safe).
+  function addStandalonePass(data) {
+    const bubble = addThinkingBubble(data);
+    transformToPass(bubble, data.reason);
+  }
+
+  // speaker_start after turn_check: convert the thinking bubble into a speaking one.
+  function transformToSpeaking(bubble, speaker) {
+    bubble.classList.remove('thinking');
+    bubble.classList.add('typing', 'pending');
+    const textBox = bubble.querySelector('.bubble-text');
+    textBox.textContent = '';
+    const nameRow = bubble.querySelector('.bubble-name-row');
+    applyStanceClass(bubble, speaker.stance);
+    applyStanceBadge(nameRow, speaker.stance);
+    scrollDown();
+  }
+
   function appendChunk(bubble, text) {
     if (!text) return;
-    // First chunk -> remove "pending" dots indicator.
     if (bubble.classList.contains('pending')) bubble.classList.remove('pending');
     const textBox = bubble.querySelector('.bubble-text');
     textBox.textContent += text;
