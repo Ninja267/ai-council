@@ -44,7 +44,7 @@ git clone <repo-url> ai-council
 cd ai-council
 npm install
 
-# 2. Cấu hình API keys
+# 2. (Tùy chọn) Cấu hình API keys ở server
 cp .env.example .env
 # Mở .env và điền 4 API keys:
 #   ANTHROPIC_API_KEY  (https://console.anthropic.com/)
@@ -56,6 +56,17 @@ cp .env.example .env
 npm start
 # Mở http://localhost:3000
 ```
+
+### Hai cách cấu hình API keys
+
+1. **Trong `.env`** (server-side, persistent qua các phiên).
+2. **Bằng UI Settings** trong web (bấm ⚙️ ở header) — keys lưu trong `localStorage`
+   của trình duyệt, gửi kèm mỗi request, server **không bao giờ persist** keys do
+   user nhập. Phù hợp với demo / hội thảo khi không muốn sửa `.env`.
+
+Cơ chế ưu tiên: nếu user nhập key qua UI → dùng key đó. Nếu trường để trống →
+fallback về `.env` của server. Status dot xanh trên mỗi chip ở header cho biết
+model đó đã có key hay chưa (tooltip cho biết key đến từ đâu).
 
 ---
 

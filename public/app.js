@@ -12,6 +12,140 @@
     SUPPORT: { text: '🤝 ủng hộ', cls: 'badge-support' }
   };
 
+  // ---- Settings / API keys (stored only in this browser) ----
+  const KEYS_STORAGE_KEY = 'ai-council-keys-v1';
+  const PROVIDERS = ['anthropic', 'openai', 'google', 'xai'];
+
+  const settingsModal = document.getElementById('settings-modal');
+  const settingsBtn = document.getElementById('settings-btn');
+  const settingsClose = document.getElementById('settings-close');
+  const settingsBackdrop = document.getElementById('settings-backdrop');
+  const settingsSave = document.getElementById('settings-save');
+  const settingsClear = document.getElementById('settings-clear');
+  const settingsShowToggle = document.getElementById('settings-show-toggle');
+  const keyInputs = Object.fromEntries(
+    PROVIDERS.map((p) => [p, document.getElementById('key-' + p)])
+  );
+
+  let envConfigured = { anthropic: false, openai: false, google: false, xai: false };
+  let keysVisible = false;
+
+  function loadKeysFromStorage() {
+    try {
+      const raw = localStorage.getItem(KEYS_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  }
+
+  function saveKeysToStorage(keys) {
+    try {
+      localStorage.setItem(KEYS_STORAGE_KEY, JSON.stringify(keys));
+    } catch {
+      /* localStorage disabled — ignore */
+    }
+  }
+
+  function clearKeysFromStorage() {
+    try {
+      localStorage.removeItem(KEYS_STORAGE_KEY);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function currentKeys() {
+    const stored = loadKeysFromStorage();
+    const out = {};
+    for (const p of PROVIDERS) out[p] = stored[p] || '';
+    return out;
+  }
+
+  function updateStatusDots() {
+    const stored = loadKeysFromStorage();
+    document.querySelectorAll('.chip[data-key-for]').forEach((chip) => {
+      const provider = chip.dataset.keyFor;
+      const hasUserKey = Boolean(stored[provider]);
+      const hasEnvKey = Boolean(envConfigured[provider]);
+      const hasAny = hasUserKey || hasEnvKey;
+      const dot = chip.querySelector('.status-dot');
+      if (dot) dot.dataset.status = hasAny ? 'on' : 'off';
+      chip.title = !hasAny
+        ? 'Chưa có key — bấm ⚙️ để nhập'
+        : hasUserKey
+        ? 'Dùng key của bạn (trong trình duyệt)'
+        : 'Dùng key từ server (.env)';
+    });
+  }
+
+  async function fetchHealth() {
+    try {
+      const r = await fetch('/api/health');
+      if (!r.ok) return;
+      const j = await r.json();
+      const k = j?.keysConfigured || {};
+      envConfigured = {
+        anthropic: !!k.claude,
+        openai:    !!k.chatgpt,
+        google:    !!k.gemini,
+        xai:       !!k.grok
+      };
+    } catch {
+      /* ignore — keep dots based on local keys only */
+    }
+    updateStatusDots();
+  }
+
+  function openSettings() {
+    const k = currentKeys();
+    for (const p of PROVIDERS) {
+      keyInputs[p].value = k[p];
+      keyInputs[p].type = keysVisible ? 'text' : 'password';
+    }
+    settingsModal.hidden = false;
+    settingsModal.setAttribute('aria-hidden', 'false');
+    setTimeout(() => keyInputs.anthropic?.focus(), 30);
+  }
+
+  function closeSettings() {
+    settingsModal.hidden = true;
+    settingsModal.setAttribute('aria-hidden', 'true');
+  }
+
+  settingsBtn?.addEventListener('click', openSettings);
+  settingsClose?.addEventListener('click', closeSettings);
+  settingsBackdrop?.addEventListener('click', closeSettings);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !settingsModal.hidden) closeSettings();
+  });
+
+  settingsSave?.addEventListener('click', () => {
+    const toSave = {};
+    for (const p of PROVIDERS) {
+      const v = (keyInputs[p].value || '').trim();
+      if (v) toSave[p] = v;
+    }
+    if (Object.keys(toSave).length === 0) clearKeysFromStorage();
+    else saveKeysToStorage(toSave);
+    updateStatusDots();
+    closeSettings();
+  });
+
+  settingsClear?.addEventListener('click', () => {
+    for (const p of PROVIDERS) keyInputs[p].value = '';
+    clearKeysFromStorage();
+    updateStatusDots();
+  });
+
+  settingsShowToggle?.addEventListener('click', () => {
+    keysVisible = !keysVisible;
+    for (const p of PROVIDERS) keyInputs[p].type = keysVisible ? 'text' : 'password';
+    settingsShowToggle.textContent = keysVisible ? 'Ẩn keys' : 'Hiện keys';
+  });
+
+  fetchHealth();
+
   let currentBubble = null;
   let isRunning = false;
 
@@ -54,7 +188,7 @@
     const response = await fetch('/api/council', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
-      body: JSON.stringify({ question })
+      body: JSON.stringify({ question, keys: currentKeys() })
     });
 
     if (!response.ok) {

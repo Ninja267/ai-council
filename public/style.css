@@ -49,18 +49,47 @@ body {
   flex-shrink: 0;
 }
 .title-row { display: flex; align-items: center; gap: 14px; }
+.title-text { flex: 1; min-width: 0; }
 .logo { font-size: 36px; line-height: 1; }
 .title-text h1 { font-size: 19px; font-weight: 700; letter-spacing: 0.2px; }
 .members { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .chip {
   font-size: 12px;
-  padding: 3px 10px;
+  padding: 3px 10px 3px 8px;
   background: rgba(255,255,255,0.18);
   border-radius: 14px;
   white-space: nowrap;
   backdrop-filter: blur(4px);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
 }
 .chip small { opacity: 0.85; font-size: 10px; margin-left: 2px; }
+.status-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.3);
+  transition: background 0.2s;
+}
+.status-dot[data-status="on"] { background: #22c55e; }
+
+.settings-btn {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border: none;
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+  font-size: 18px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.05s;
+}
+.settings-btn:hover { background: rgba(255,255,255,0.28); }
+.settings-btn:active { transform: scale(0.94); }
 
 /* Chat area */
 .chat {
@@ -338,13 +367,148 @@ body {
 .chat::-webkit-scrollbar-thumb { background: #ccd0d5; border-radius: 4px; }
 .chat::-webkit-scrollbar-thumb:hover { background: #b0b3b8; }
 
+/* Settings modal */
+.settings-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.settings-modal[hidden] { display: none; }
+.settings-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 17, 21, 0.55);
+  backdrop-filter: blur(3px);
+  animation: fade-in 0.15s ease-out;
+}
+.settings-card {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+  padding: 22px 24px 18px;
+  animation: pop-in 0.18s ease-out;
+}
+@keyframes fade-in {
+  from { opacity: 0; } to { opacity: 1; }
+}
+@keyframes pop-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: none;
+  background: none;
+  padding: 0;
+  margin-bottom: 8px;
+}
+.settings-header h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+.settings-close {
+  background: none;
+  border: none;
+  font-size: 26px;
+  line-height: 1;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0 4px;
+  border-radius: 4px;
+}
+.settings-close:hover { color: var(--text); background: var(--bg); }
+.settings-hint {
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-bottom: 16px;
+  line-height: 1.55;
+}
+.settings-hint code {
+  background: var(--bg);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 11.5px;
+}
+.key-field {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 8px;
+  margin-bottom: 14px;
+  align-items: center;
+}
+.key-field label {
+  grid-column: 1 / -1;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+.key-field input {
+  padding: 9px 12px;
+  border: 1px solid #ccd0d5;
+  border-radius: 10px;
+  font-size: 13px;
+  outline: none;
+  font-family: -apple-system, ui-monospace, Menlo, monospace;
+  background: var(--bg);
+}
+.key-field input:focus { border-color: #6366f1; background: #fff; }
+.key-link {
+  font-size: 11px;
+  color: #6366f1;
+  text-decoration: none;
+  white-space: nowrap;
+  padding: 4px 6px;
+}
+.key-link:hover { text-decoration: underline; }
+.settings-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.btn-primary, .btn-secondary {
+  padding: 9px 18px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.15s, background 0.15s, transform 0.05s;
+}
+.btn-primary {
+  background-image: var(--gradient);
+  color: #fff;
+}
+.btn-primary:hover { opacity: 0.92; }
+.btn-primary:active { transform: scale(0.98); }
+.btn-secondary {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn-secondary:hover { background: #e4e6eb; }
+
 /* Mobile */
 @media (max-width: 600px) {
   .app { max-width: 100%; }
   .header { padding: 12px 14px; }
   .title-text h1 { font-size: 17px; }
-  .chip { font-size: 11px; padding: 2px 8px; }
+  .chip { font-size: 11px; padding: 2px 8px 2px 7px; }
   .bubble { max-width: 92%; }
   .welcome { padding: 16px; }
   .welcome h2 { font-size: 19px; }
+  .settings-card { padding: 18px; }
 }

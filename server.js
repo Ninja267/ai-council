@@ -61,6 +61,16 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Per-request key sanitization. Empty or non-string values fall through to
+// the env-var fallback inside each provider. Keys are never persisted or logged.
+const MAX_KEY_LEN = 500;
+function sanitizeKey(v) {
+  if (typeof v !== 'string') return undefined;
+  const trimmed = v.trim();
+  if (!trimmed || trimmed.length > MAX_KEY_LEN) return undefined;
+  return trimmed;
+}
+
 app.post('/api/council', async (req, res) => {
   const question = typeof req.body?.question === 'string' ? req.body.question.trim() : '';
 
@@ -72,6 +82,14 @@ app.post('/api/council', async (req, res) => {
       error: `Câu hỏi quá dài (>${MAX_QUESTION_CHARS} ký tự). Hãy rút gọn lại.`
     });
   }
+
+  const rawKeys = req.body?.keys && typeof req.body.keys === 'object' ? req.body.keys : {};
+  const keys = {
+    anthropic: sanitizeKey(rawKeys.anthropic),
+    openai: sanitizeKey(rawKeys.openai),
+    google: sanitizeKey(rawKeys.google),
+    xai: sanitizeKey(rawKeys.xai)
+  };
 
   // Server-Sent Events response.
   res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
@@ -95,7 +113,7 @@ app.post('/api/council', async (req, res) => {
   }, 15000);
 
   try {
-    await runCouncil(question, emit, abort.signal);
+    await runCouncil(question, emit, keys, abort.signal);
   } catch (err) {
     emit('error', { message: err?.message || 'Internal error' });
   } finally {

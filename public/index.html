@@ -16,14 +16,61 @@
         <div class="title-text">
           <h1>AI Council</h1>
           <div class="members" id="members">
-            <span class="chip chip-claude">🎩 Claude <small>(chủ tọa)</small></span>
-            <span class="chip chip-chatgpt">🤓 ChatGPT</span>
-            <span class="chip chip-gemini">💎 Gemini</span>
-            <span class="chip chip-grok">😏 Grok</span>
+            <span class="chip" data-key-for="anthropic"><span class="status-dot" data-status="off" aria-hidden="true"></span>🎩 Claude <small>(chủ tọa)</small></span>
+            <span class="chip" data-key-for="openai"><span class="status-dot" data-status="off" aria-hidden="true"></span>🤓 ChatGPT</span>
+            <span class="chip" data-key-for="google"><span class="status-dot" data-status="off" aria-hidden="true"></span>💎 Gemini</span>
+            <span class="chip" data-key-for="xai"><span class="status-dot" data-status="off" aria-hidden="true"></span>😏 Grok</span>
           </div>
         </div>
+        <button class="settings-btn" id="settings-btn" type="button" aria-label="Cài đặt API keys" title="Cài đặt API keys">
+          ⚙️
+        </button>
       </div>
     </header>
+
+    <div class="settings-modal" id="settings-modal" hidden aria-hidden="true" role="dialog" aria-labelledby="settings-title" aria-modal="true">
+      <div class="settings-backdrop" id="settings-backdrop"></div>
+      <div class="settings-card">
+        <header class="settings-header">
+          <h2 id="settings-title">⚙️ Cài đặt API Keys</h2>
+          <button class="settings-close" id="settings-close" type="button" aria-label="Đóng">×</button>
+        </header>
+        <p class="settings-hint">
+          Keys lưu trong trình duyệt của bạn (localStorage). Server <strong>không</strong> lưu lại keys do bạn nhập.
+          Bỏ trống một trường sẽ dùng key từ <code>.env</code> trên server (nếu có).
+        </p>
+
+        <div class="key-field">
+          <label for="key-anthropic">🎩 Claude — Anthropic</label>
+          <input id="key-anthropic" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-..." />
+          <a class="key-link" href="https://console.anthropic.com/" target="_blank" rel="noopener noreferrer">Lấy key</a>
+        </div>
+
+        <div class="key-field">
+          <label for="key-openai">🤓 ChatGPT — OpenAI</label>
+          <input id="key-openai" type="password" autocomplete="off" spellcheck="false" placeholder="sk-..." />
+          <a class="key-link" href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer">Lấy key</a>
+        </div>
+
+        <div class="key-field">
+          <label for="key-google">💎 Gemini — Google AI Studio</label>
+          <input id="key-google" type="password" autocomplete="off" spellcheck="false" placeholder="AIza..." />
+          <a class="key-link" href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Lấy key</a>
+        </div>
+
+        <div class="key-field">
+          <label for="key-xai">😏 Grok — xAI</label>
+          <input id="key-xai" type="password" autocomplete="off" spellcheck="false" placeholder="xai-..." />
+          <a class="key-link" href="https://console.x.ai/" target="_blank" rel="noopener noreferrer">Lấy key</a>
+        </div>
+
+        <footer class="settings-footer">
+          <button class="btn-secondary" id="settings-show-toggle" type="button">Hiện keys</button>
+          <button class="btn-secondary" id="settings-clear" type="button">Xóa hết</button>
+          <button class="btn-primary" id="settings-save" type="button">Lưu</button>
+        </footer>
+      </div>
+    </div>
 
     <main class="chat" id="chat" aria-live="polite">
       <div class="welcome" id="welcome">
