@@ -10,11 +10,6 @@
   const sendBtn = document.getElementById('send');
   const welcome = document.getElementById('welcome');
 
-  const STANCE_CLASS = {
-    REBUT: 'badge-rebut',
-    SUPPORT: 'badge-support'
-  };
-
   // ---- Settings / API keys (stored only in this browser) ----
   const KEYS_STORAGE_KEY = 'ai-council-keys-v1';
   const PROVIDERS = ['anthropic', 'openai', 'google', 'xai'];
@@ -324,21 +319,19 @@
 
   function handleEvent(event, data) {
     switch (event) {
-      case 'phase': {
-        // Prefer localized label keyed by phase name; fall back to server-emitted label.
-        const localized = data.name ? t('phases.' + data.name) : null;
-        const isMissing = typeof localized !== 'string' || localized === 'phases.' + data.name;
-        addPhase(isMissing ? data.label : localized);
+      case 'phase':
+        // Intentionally NOT rendered: round titles break the illusion of a
+        // natural group chat. The server still emits them so the backend
+        // can keep its state machine clean.
         break;
-      }
       case 'turn_check':
         currentBubble = addThinkingBubble(data);
         break;
       case 'turn_pass':
+        // Silent skip: someone who "thought about it then said nothing" should
+        // leave no trace in the conversation, just like in a real group chat.
         if (currentBubble && currentBubble.dataset.id === data.id) {
-          transformToPass(currentBubble, data.reason);
-        } else {
-          addStandalonePass(data);
+          currentBubble.remove();
         }
         currentBubble = null;
         break;
@@ -376,16 +369,6 @@
     const div = document.createElement('div');
     div.className = 'user-msg';
     div.textContent = text;
-    chat.appendChild(div);
-    scrollDown();
-  }
-
-  function addPhase(label) {
-    const div = document.createElement('div');
-    div.className = 'phase';
-    const span = document.createElement('span');
-    span.textContent = label;
-    div.appendChild(span);
     chat.appendChild(div);
     scrollDown();
   }
@@ -429,30 +412,15 @@
     return { div, nameRow, textBox };
   }
 
-  function applyStanceBadge(nameRow, stance) {
-    if (!stance || !STANCE_CLASS[stance]) return;
-    // Drop any existing badge first.
-    nameRow.querySelector('.stance-badge')?.remove();
-    const badge = document.createElement('span');
-    badge.className = 'stance-badge ' + STANCE_CLASS[stance];
-    badge.textContent = t('stance.' + stance);
-    nameRow.appendChild(badge);
-  }
-
-  function applyStanceClass(div, stance) {
-    div.classList.remove('stance-rebut', 'stance-support');
-    if (stance === 'REBUT') div.classList.add('stance-rebut');
-    if (stance === 'SUPPORT') div.classList.add('stance-support');
-  }
-
   // Speaker is going to stream full content (no "thinking" phase preceded it).
   function addBubble(speaker) {
     const { div, nameRow, textBox } = buildBubbleShell(speaker);
     div.className = 'bubble typing pending';
     div.dataset.id = speaker.id;
-    applyStanceClass(div, speaker.stance);
-    applyStanceBadge(nameRow, speaker.stance);
-    // Keep textBox referenced via class lookup later in appendChunk.
+    // No stance badges or accents — we want the conversation to feel like
+    // a natural group chat, not a debate scoreboard. The model's own words
+    // convey its position.
+    void nameRow;
     void textBox;
     chat.appendChild(div);
     scrollDown();
@@ -475,37 +443,12 @@
     return div;
   }
 
-  // turn_pass: convert the thinking bubble into a passed-turn indicator.
-  function transformToPass(bubble, reason) {
-    bubble.classList.remove('thinking');
-    bubble.classList.add('pass');
-    const textBox = bubble.querySelector('.bubble-text');
-    textBox.textContent = '';
-    const passLabel = document.createElement('em');
-    passLabel.textContent = t('passed');
-    textBox.appendChild(passLabel);
-    if (reason) {
-      const reasonNode = document.createTextNode(' — ' + reason);
-      textBox.appendChild(reasonNode);
-    }
-    scrollDown();
-  }
-
-  // turn_pass arriving without a preceding turn_check (shouldn't happen, but safe).
-  function addStandalonePass(data) {
-    const bubble = addThinkingBubble(data);
-    transformToPass(bubble, data.reason);
-  }
-
   // speaker_start after turn_check: convert the thinking bubble into a speaking one.
-  function transformToSpeaking(bubble, speaker) {
+  function transformToSpeaking(bubble) {
     bubble.classList.remove('thinking');
     bubble.classList.add('typing', 'pending');
     const textBox = bubble.querySelector('.bubble-text');
     textBox.textContent = '';
-    const nameRow = bubble.querySelector('.bubble-name-row');
-    applyStanceClass(bubble, speaker.stance);
-    applyStanceBadge(nameRow, speaker.stance);
     scrollDown();
   }
 

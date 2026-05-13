@@ -132,29 +132,6 @@ body {
 .example:hover { border-color: #6366f1; }
 .example:active { transform: scale(0.99); }
 
-/* Phase divider */
-.phase {
-  text-align: center;
-  margin: 14px 0 4px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.phase::before, .phase::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--border);
-}
-.phase span {
-  font-size: 11px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-weight: 600;
-  padding: 0 4px;
-}
-
 /* User message */
 .user-msg {
   align-self: flex-end;
@@ -200,21 +177,6 @@ body {
   color: var(--muted);
   font-weight: 600;
 }
-.stance-badge {
-  font-size: 10px;
-  padding: 1px 7px;
-  border-radius: 10px;
-  font-weight: 600;
-  letter-spacing: 0.2px;
-}
-.badge-rebut {
-  background: #ffe5dc;
-  color: #b8341c;
-}
-.badge-support {
-  background: #dcf3e6;
-  color: #14774a;
-}
 .bubble-text {
   padding: 10px 14px;
   border-radius: 4px 18px 18px 18px;
@@ -225,14 +187,6 @@ body {
   word-wrap: break-word;
   overflow-wrap: anywhere;
   min-height: 1em;
-}
-
-/* Stance accents on the bubble itself */
-.bubble.stance-rebut .bubble-text {
-  border-left: 3px solid #e0563f;
-}
-.bubble.stance-support .bubble-text {
-  border-left: 3px solid #15a86b;
 }
 
 /* "Thinking" bubble (turn_check) */
@@ -256,21 +210,6 @@ body {
   100% { width: 14px; }
 }
 
-/* "Passed" bubble (turn_pass) */
-.bubble.pass .bubble-text {
-  background: transparent;
-  border: 1px dashed #d0d4d9;
-  padding: 6px 12px;
-  font-size: 12px;
-  color: var(--muted);
-  font-style: italic;
-  opacity: 0.85;
-}
-.bubble.pass .bubble-text em {
-  font-style: normal;
-  font-weight: 600;
-  color: #8a8d91;
-}
 .bubble.typing .bubble-text::after {
   content: '▍';
   display: inline-block;
