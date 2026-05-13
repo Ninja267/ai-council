@@ -1,15 +1,18 @@
 (() => {
   'use strict';
 
+  const i18n = window.AICouncilI18n;
+  const t = (k) => i18n.t(k);
+
   const chat = document.getElementById('chat');
   const form = document.getElementById('form');
   const input = document.getElementById('input');
   const sendBtn = document.getElementById('send');
   const welcome = document.getElementById('welcome');
 
-  const STANCE_BADGE = {
-    REBUT: { text: '🔥 phản biện', cls: 'badge-rebut' },
-    SUPPORT: { text: '🤝 ủng hộ', cls: 'badge-support' }
+  const STANCE_CLASS = {
+    REBUT: 'badge-rebut',
+    SUPPORT: 'badge-support'
   };
 
   // ---- Settings / API keys (stored only in this browser) ----
@@ -72,10 +75,10 @@
       const dot = chip.querySelector('.status-dot');
       if (dot) dot.dataset.status = hasAny ? 'on' : 'off';
       chip.title = !hasAny
-        ? 'Chưa có key — bấm ⚙️ để nhập'
+        ? t('notReadyKey')
         : hasUserKey
-        ? 'Dùng key của bạn (trong trình duyệt)'
-        : 'Dùng key từ server (.env)';
+        ? t('userKey')
+        : t('envKey');
     });
   }
 
@@ -141,7 +144,7 @@
   settingsShowToggle?.addEventListener('click', () => {
     keysVisible = !keysVisible;
     for (const p of PROVIDERS) keyInputs[p].type = keysVisible ? 'text' : 'password';
-    settingsShowToggle.textContent = keysVisible ? 'Ẩn keys' : 'Hiện keys';
+    settingsShowToggle.textContent = keysVisible ? t('hideKeys') : t('showKeys');
   });
 
   // ---- Test key buttons ----
@@ -155,7 +158,7 @@
     const prevLabel = btn.textContent;
     btn.textContent = '...';
     resultDiv.className = 'key-test-result loading';
-    resultDiv.textContent = 'đang thử…';
+    resultDiv.textContent = t('testing');
 
     try {
       const r = await fetch('/api/test-key', {
@@ -163,18 +166,18 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ provider, apiKey })
       });
-      const j = await r.json().catch(() => ({ ok: false, error: 'phản hồi không hợp lệ' }));
+      const j = await r.json().catch(() => ({ ok: false, error: t('invalidResponse') }));
 
       if (j.ok) {
         resultDiv.className = 'key-test-result ok';
-        resultDiv.textContent = `✓ OK${j.model ? ` — model: ${j.model}` : ''}`;
+        resultDiv.textContent = `${t('testOk')}${j.model ? ` — model: ${j.model}` : ''}`;
       } else {
         resultDiv.className = 'key-test-result fail';
-        resultDiv.textContent = `✗ ${j.error || 'lỗi'}`;
+        resultDiv.textContent = `${t('testFail')} ${j.error || t('error')}`;
       }
     } catch (err) {
       resultDiv.className = 'key-test-result fail';
-      resultDiv.textContent = '✗ ' + (err?.message || 'lỗi mạng');
+      resultDiv.textContent = `${t('testFail')} ` + (err?.message || t('networkError'));
     } finally {
       btn.disabled = false;
       btn.textContent = prevLabel;
@@ -191,17 +194,51 @@
     }
   });
 
+  // ---- Language selector ----
+  const langSelect = document.getElementById('lang-select');
+  if (langSelect) {
+    langSelect.value = i18n.getLang();
+    langSelect.addEventListener('change', () => i18n.setLang(langSelect.value));
+  }
+
+  // ---- Welcome examples (rendered from translations) ----
+  const examplesContainer = document.querySelector('.examples');
+  function renderExamples() {
+    if (!examplesContainer) return;
+    examplesContainer.textContent = '';
+    const items = t('examples');
+    if (!Array.isArray(items)) return;
+    for (const text of items) {
+      const btn = document.createElement('button');
+      btn.className = 'example';
+      btn.type = 'button';
+      btn.textContent = text;
+      btn.addEventListener('click', () => {
+        input.value = text;
+        input.focus();
+      });
+      examplesContainer.appendChild(btn);
+    }
+  }
+
+  // Initial i18n pass — applies static [data-i18n*] markers across the DOM —
+  // and a subscription so any future setLang() re-renders dynamic UI too.
+  i18n.applyI18n();
+  renderExamples();
+  i18n.onChange(() => {
+    renderExamples();
+    // Re-sync the show/hide-keys toggle since its label depends on UI state,
+    // not a static data-i18n attribute.
+    if (settingsShowToggle) {
+      settingsShowToggle.textContent = keysVisible ? t('hideKeys') : t('showKeys');
+    }
+    updateStatusDots();
+  });
+
   fetchHealth();
 
   let currentBubble = null;
   let isRunning = false;
-
-  document.querySelectorAll('.example').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      input.value = btn.textContent.trim();
-      input.focus();
-    });
-  });
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -221,7 +258,7 @@
     try {
       await streamCouncil(question);
     } catch (err) {
-      addSystemMessage('⚠️ ' + (err?.message || 'Có lỗi xảy ra. Hãy thử lại.'));
+      addSystemMessage(err?.message ? '⚠️ ' + err.message : t('requestError'));
     } finally {
       isRunning = false;
       input.disabled = false;
@@ -287,9 +324,13 @@
 
   function handleEvent(event, data) {
     switch (event) {
-      case 'phase':
-        addPhase(data.label);
+      case 'phase': {
+        // Prefer localized label keyed by phase name; fall back to server-emitted label.
+        const localized = data.name ? t('phases.' + data.name) : null;
+        const isMissing = typeof localized !== 'string' || localized === 'phases.' + data.name;
+        addPhase(isMissing ? data.label : localized);
         break;
+      }
       case 'turn_check':
         currentBubble = addThinkingBubble(data);
         break;
@@ -389,13 +430,12 @@
   }
 
   function applyStanceBadge(nameRow, stance) {
-    if (!stance || !STANCE_BADGE[stance]) return;
+    if (!stance || !STANCE_CLASS[stance]) return;
     // Drop any existing badge first.
     nameRow.querySelector('.stance-badge')?.remove();
     const badge = document.createElement('span');
-    const conf = STANCE_BADGE[stance];
-    badge.className = 'stance-badge ' + conf.cls;
-    badge.textContent = conf.text;
+    badge.className = 'stance-badge ' + STANCE_CLASS[stance];
+    badge.textContent = t('stance.' + stance);
     nameRow.appendChild(badge);
   }
 
@@ -425,7 +465,7 @@
     div.className = 'bubble thinking';
     div.dataset.id = speaker.id;
     void nameRow;
-    textBox.textContent = 'đang cân nhắc';
+    textBox.textContent = t('thinking');
     const dots = document.createElement('span');
     dots.className = 'thinking-dots';
     dots.textContent = '...';
@@ -442,7 +482,7 @@
     const textBox = bubble.querySelector('.bubble-text');
     textBox.textContent = '';
     const passLabel = document.createElement('em');
-    passLabel.textContent = 'đã bỏ qua';
+    passLabel.textContent = t('passed');
     textBox.appendChild(passLabel);
     if (reason) {
       const reasonNode = document.createTextNode(' — ' + reason);

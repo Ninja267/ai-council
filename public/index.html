@@ -16,13 +16,13 @@
         <div class="title-text">
           <h1>AI Council</h1>
           <div class="members" id="members">
-            <span class="chip" data-key-for="anthropic"><span class="status-dot" data-status="off" aria-hidden="true"></span>🎩 Claude <small>(chủ tọa)</small></span>
+            <span class="chip" data-key-for="anthropic"><span class="status-dot" data-status="off" aria-hidden="true"></span>🎩 Claude <small data-i18n="chair">(chủ tọa)</small></span>
             <span class="chip" data-key-for="openai"><span class="status-dot" data-status="off" aria-hidden="true"></span>🤓 ChatGPT</span>
             <span class="chip" data-key-for="google"><span class="status-dot" data-status="off" aria-hidden="true"></span>💎 Gemini</span>
             <span class="chip" data-key-for="xai"><span class="status-dot" data-status="off" aria-hidden="true"></span>😏 Grok</span>
           </div>
         </div>
-        <button class="settings-btn" id="settings-btn" type="button" aria-label="Cài đặt API keys" title="Cài đặt API keys">
+        <button class="settings-btn" id="settings-btn" type="button" data-i18n-aria-label="settingsBtnLabel" data-i18n-title="settingsBtnLabel" aria-label="Cài đặt" title="Cài đặt">
           ⚙️
         </button>
       </div>
@@ -32,20 +32,31 @@
       <div class="settings-backdrop" id="settings-backdrop"></div>
       <div class="settings-card">
         <header class="settings-header">
-          <h2 id="settings-title">⚙️ Cài đặt API Keys</h2>
-          <button class="settings-close" id="settings-close" type="button" aria-label="Đóng">×</button>
+          <h2 id="settings-title" data-i18n="settingsTitle">⚙️ Cài đặt</h2>
+          <button class="settings-close" id="settings-close" type="button" data-i18n-aria-label="closeBtn" aria-label="Đóng">×</button>
         </header>
-        <p class="settings-hint">
+        <p class="settings-hint" data-i18n-html="settingsHint_html">
           Keys lưu trong trình duyệt của bạn (localStorage). Server <strong>không</strong> lưu lại keys do bạn nhập.
           Bỏ trống một trường sẽ dùng key từ <code>.env</code> trên server (nếu có).
         </p>
+
+        <div class="lang-field">
+          <label for="lang-select" data-i18n="language">Ngôn ngữ giao diện</label>
+          <select id="lang-select" class="lang-select">
+            <option value="vi">Tiếng Việt</option>
+            <option value="en">English</option>
+            <option value="fr">Français</option>
+          </select>
+        </div>
+
+        <hr class="settings-divider" />
 
         <div class="key-field">
           <label for="key-anthropic">🎩 Claude — Anthropic</label>
           <input id="key-anthropic" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-..." />
           <div class="key-field-actions">
-            <button class="key-test-btn" type="button" data-test="anthropic">Test</button>
-            <a class="key-link" href="https://console.anthropic.com/" target="_blank" rel="noopener noreferrer">Lấy key</a>
+            <button class="key-test-btn" type="button" data-test="anthropic" data-i18n="testBtn">Test</button>
+            <a class="key-link" href="https://console.anthropic.com/" target="_blank" rel="noopener noreferrer" data-i18n="getKey">Lấy key</a>
           </div>
           <div class="key-test-result" data-result-for="anthropic"></div>
         </div>
@@ -54,8 +65,8 @@
           <label for="key-openai">🤓 ChatGPT — OpenAI</label>
           <input id="key-openai" type="password" autocomplete="off" spellcheck="false" placeholder="sk-..." />
           <div class="key-field-actions">
-            <button class="key-test-btn" type="button" data-test="openai">Test</button>
-            <a class="key-link" href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer">Lấy key</a>
+            <button class="key-test-btn" type="button" data-test="openai" data-i18n="testBtn">Test</button>
+            <a class="key-link" href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" data-i18n="getKey">Lấy key</a>
           </div>
           <div class="key-test-result" data-result-for="openai"></div>
         </div>
@@ -64,8 +75,8 @@
           <label for="key-google">💎 Gemini — Google AI Studio</label>
           <input id="key-google" type="password" autocomplete="off" spellcheck="false" placeholder="AIza..." />
           <div class="key-field-actions">
-            <button class="key-test-btn" type="button" data-test="google">Test</button>
-            <a class="key-link" href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Lấy key</a>
+            <button class="key-test-btn" type="button" data-test="google" data-i18n="testBtn">Test</button>
+            <a class="key-link" href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" data-i18n="getKey">Lấy key</a>
           </div>
           <div class="key-test-result" data-result-for="google"></div>
         </div>
@@ -74,17 +85,17 @@
           <label for="key-xai">😏 Grok — xAI</label>
           <input id="key-xai" type="password" autocomplete="off" spellcheck="false" placeholder="xai-..." />
           <div class="key-field-actions">
-            <button class="key-test-btn" type="button" data-test="xai">Test</button>
-            <a class="key-link" href="https://console.x.ai/" target="_blank" rel="noopener noreferrer">Lấy key</a>
+            <button class="key-test-btn" type="button" data-test="xai" data-i18n="testBtn">Test</button>
+            <a class="key-link" href="https://console.x.ai/" target="_blank" rel="noopener noreferrer" data-i18n="getKey">Lấy key</a>
           </div>
           <div class="key-test-result" data-result-for="xai"></div>
         </div>
 
         <footer class="settings-footer">
-          <button class="btn-secondary" id="settings-test-all" type="button">Test tất cả</button>
-          <button class="btn-secondary" id="settings-show-toggle" type="button">Hiện keys</button>
-          <button class="btn-secondary" id="settings-clear" type="button">Xóa hết</button>
-          <button class="btn-primary" id="settings-save" type="button">Lưu</button>
+          <button class="btn-secondary" id="settings-test-all" type="button" data-i18n="testAll">Test tất cả</button>
+          <button class="btn-secondary" id="settings-show-toggle" type="button" data-i18n="showKeys">Hiện keys</button>
+          <button class="btn-secondary" id="settings-clear" type="button" data-i18n="clearAll">Xóa hết</button>
+          <button class="btn-primary" id="settings-save" type="button" data-i18n="save">Lưu</button>
         </footer>
       </div>
     </div>
@@ -92,14 +103,9 @@
     <main class="chat" id="chat" aria-live="polite">
       <div class="welcome" id="welcome">
         <div class="welcome-icon">⚖️</div>
-        <h2>Chào mừng đến với AI Council</h2>
-        <p>Đặt một câu hỏi và chứng kiến 4 AI tranh luận trong 2 vòng để cùng đưa ra câu trả lời.</p>
-        <p class="subtle">Ask anything and watch 4 AIs debate across 2 rounds.</p>
-        <div class="examples">
-          <button class="example" type="button">Có nên học một ngôn ngữ lập trình mới năm 2026 không?</button>
-          <button class="example" type="button">Is remote work better than office work?</button>
-          <button class="example" type="button">Mèo hay chó thông minh hơn?</button>
-        </div>
+        <h2 data-i18n="welcomeTitle">Chào mừng đến với AI Council</h2>
+        <p data-i18n="welcomeSub">Đặt một câu hỏi và chứng kiến 4 AI tranh luận trong 2 vòng để cùng đưa ra câu trả lời.</p>
+        <div class="examples"></div>
       </div>
     </main>
 
@@ -109,19 +115,21 @@
           id="input"
           type="text"
           name="question"
+          data-i18n-placeholder="askPlaceholder"
           placeholder="Hỏi Council bất cứ điều gì..."
           maxlength="2000"
           autofocus
           required
         />
-        <button type="submit" id="send" aria-label="Gửi">
-          <span class="send-label">Hỏi</span>
+        <button type="submit" id="send" data-i18n-aria-label="sendBtn" aria-label="Gửi">
+          <span class="send-label" data-i18n="sendBtn">Hỏi</span>
         </button>
       </form>
-      <div class="footnote">4 AI · 2 vòng tranh luận · Claude làm chủ tọa</div>
+      <div class="footnote" data-i18n="footnote">4 AI · tranh luận nhiều vòng · Claude làm chủ tọa</div>
     </footer>
   </div>
 
+  <script src="/i18n.js"></script>
   <script src="/app.js"></script>
 </body>
 </html>
