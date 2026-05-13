@@ -427,16 +427,18 @@
     return div;
   }
 
-  // Rounds 2-4: model is deciding. Show "đang cân nhắc..." italic bubble.
+  // Rounds 2-4: model is deciding. Show a typing-indicator bubble.
   function addThinkingBubble(speaker) {
     const { div, nameRow, textBox } = buildBubbleShell(speaker);
     div.className = 'bubble thinking';
     div.dataset.id = speaker.id;
     void nameRow;
-    textBox.textContent = t('thinking');
+    textBox.textContent = t('thinking') + ' ';
+    // Three real elements that pulse opacity — avoids the width-animation
+    // approach which could wrap onto multiple lines on narrow widths.
     const dots = document.createElement('span');
     dots.className = 'thinking-dots';
-    dots.textContent = '...';
+    for (let i = 0; i < 3; i++) dots.appendChild(document.createElement('i'));
     textBox.appendChild(dots);
     chat.appendChild(div);
     scrollDown();

@@ -197,17 +197,28 @@ body {
   border: 1px dashed #d0d4d9;
   padding: 6px 12px;
   font-size: 13px;
+  /* Keep label + dots on a single horizontal line. */
+  white-space: nowrap;
 }
 .thinking-dots {
-  display: inline-block;
-  animation: thinking-dots-anim 1.4s steps(4, end) infinite;
-  width: 0;
-  overflow: hidden;
-  vertical-align: bottom;
+  display: inline-flex;
+  gap: 3px;
+  margin-left: 4px;
+  vertical-align: middle;
 }
-@keyframes thinking-dots-anim {
-  0%   { width: 0; }
-  100% { width: 14px; }
+.thinking-dots i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.3;
+  animation: thinking-dot-pulse 1.2s infinite ease-in-out;
+}
+.thinking-dots i:nth-child(2) { animation-delay: 0.18s; }
+.thinking-dots i:nth-child(3) { animation-delay: 0.36s; }
+@keyframes thinking-dot-pulse {
+  0%, 80%, 100% { opacity: 0.25; transform: scale(0.85); }
+  40%           { opacity: 1;    transform: scale(1); }
 }
 
 .bubble.typing .bubble-text::after {
