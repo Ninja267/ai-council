@@ -317,6 +317,77 @@ body {
 .chat::-webkit-scrollbar-thumb { background: #ccd0d5; border-radius: 4px; }
 .chat::-webkit-scrollbar-thumb:hover { background: #b0b3b8; }
 
+/* Access-gate modal (password prompt for private deployments) */
+.access-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 200; /* sits above the settings modal */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.access-modal[hidden] { display: none; }
+.access-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 17, 21, 0.75);
+  backdrop-filter: blur(4px);
+  animation: fade-in 0.15s ease-out;
+}
+.access-card {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+  padding: 26px 26px 22px;
+  animation: pop-in 0.18s ease-out;
+  text-align: center;
+}
+.access-card h2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+.access-hint {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 18px;
+  line-height: 1.5;
+}
+.access-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.access-card input {
+  padding: 11px 14px;
+  border: 1px solid #ccd0d5;
+  border-radius: 12px;
+  font-size: 14px;
+  outline: none;
+  font-family: inherit;
+  background: var(--bg);
+  text-align: center;
+  letter-spacing: 1px;
+}
+.access-card input:focus { border-color: #6366f1; background: #fff; }
+.access-card .btn-primary {
+  padding: 11px 18px;
+  font-size: 14px;
+  letter-spacing: 0.3px;
+}
+.access-error {
+  margin-top: 10px;
+  color: #b8341c;
+  font-size: 12.5px;
+  font-weight: 600;
+  min-height: 1em;
+}
+
 /* Settings modal */
 .settings-modal {
   position: fixed;

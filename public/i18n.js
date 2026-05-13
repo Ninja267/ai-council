@@ -66,6 +66,14 @@
         round4: '💥 Vòng 4: Lượt cuối',
         verdict: '⚖️ Phán quyết',
         consensus: '🤝 Cả hội đồng đã thống nhất'
+      },
+      access: {
+        title: '🔒 Truy cập',
+        hint: 'Đây là deploy riêng tư. Nhập mật khẩu truy cập để dùng.',
+        placeholder: 'Mật khẩu...',
+        submit: 'Vào',
+        wrong: 'Mật khẩu không đúng',
+        signOut: 'Đăng xuất'
       }
     },
 
@@ -117,6 +125,14 @@
         round4: '💥 Round 4: Final word',
         verdict: '⚖️ Verdict',
         consensus: '🤝 The Council reached consensus'
+      },
+      access: {
+        title: '🔒 Access',
+        hint: 'This is a private deployment. Enter the access password to continue.',
+        placeholder: 'Password...',
+        submit: 'Enter',
+        wrong: 'Wrong password',
+        signOut: 'Sign out'
       }
     },
 
@@ -168,6 +184,14 @@
         round4: '💥 Tour 4 : Derniers mots',
         verdict: '⚖️ Verdict',
         consensus: '🤝 Le Conseil a atteint un consensus'
+      },
+      access: {
+        title: '🔒 Accès',
+        hint: 'Ceci est un déploiement privé. Saisissez le mot de passe pour continuer.',
+        placeholder: 'Mot de passe...',
+        submit: 'Entrer',
+        wrong: 'Mot de passe incorrect',
+        signOut: 'Se déconnecter'
       }
     }
   };

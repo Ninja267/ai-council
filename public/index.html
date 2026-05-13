@@ -28,6 +28,27 @@
       </div>
     </header>
 
+    <div class="access-modal" id="access-modal" hidden aria-hidden="true" role="dialog" aria-labelledby="access-title" aria-modal="true">
+      <div class="access-backdrop"></div>
+      <div class="access-card">
+        <h2 id="access-title" data-i18n="access.title">🔒 Truy cập</h2>
+        <p class="access-hint" data-i18n="access.hint">Đây là deploy riêng tư. Nhập mật khẩu truy cập để dùng.</p>
+        <form id="access-form" autocomplete="off">
+          <input
+            id="access-input"
+            type="password"
+            data-i18n-placeholder="access.placeholder"
+            placeholder="Mật khẩu..."
+            required
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button class="btn-primary" type="submit" data-i18n="access.submit">Vào</button>
+        </form>
+        <p class="access-error" id="access-error" hidden></p>
+      </div>
+    </div>
+
     <div class="settings-modal" id="settings-modal" hidden aria-hidden="true" role="dialog" aria-labelledby="settings-title" aria-modal="true">
       <div class="settings-backdrop" id="settings-backdrop"></div>
       <div class="settings-card">
@@ -92,6 +113,7 @@
         </div>
 
         <footer class="settings-footer">
+          <button class="btn-secondary" id="settings-sign-out" type="button" hidden data-i18n="access.signOut">Đăng xuất</button>
           <button class="btn-secondary" id="settings-test-all" type="button" data-i18n="testAll">Test tất cả</button>
           <button class="btn-secondary" id="settings-show-toggle" type="button" data-i18n="showKeys">Hiện keys</button>
           <button class="btn-secondary" id="settings-clear" type="button" data-i18n="clearAll">Xóa hết</button>

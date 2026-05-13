@@ -10,6 +10,109 @@
   const sendBtn = document.getElementById('send');
   const welcome = document.getElementById('welcome');
 
+  // ---- Access password (private deployments) ----
+  const ACCESS_STORAGE_KEY = 'ai-council-access-v1';
+
+  const accessModal = document.getElementById('access-modal');
+  const accessForm = document.getElementById('access-form');
+  const accessInput = document.getElementById('access-input');
+  const accessError = document.getElementById('access-error');
+  const signOutBtn = document.getElementById('settings-sign-out');
+
+  let gateEnabled = false; // Will be flipped on by the first /api/health response or a 401.
+  let pendingAccess = null; // Singleton promise so concurrent 401s share one modal.
+
+  function getStoredPassword() {
+    try { return localStorage.getItem(ACCESS_STORAGE_KEY) || ''; }
+    catch { return ''; }
+  }
+  function saveStoredPassword(pw) {
+    try { localStorage.setItem(ACCESS_STORAGE_KEY, pw); } catch {}
+  }
+  function clearStoredPassword() {
+    try { localStorage.removeItem(ACCESS_STORAGE_KEY); } catch {}
+  }
+
+  function authHeaders(extra = {}) {
+    return { ...extra, 'X-Access-Password': getStoredPassword() };
+  }
+
+  // Single point of fetch — adds the access header and transparently prompts
+  // for a password on 401, then retries once.
+  async function authFetch(url, options = {}) {
+    const baseOptions = { ...options, headers: authHeaders(options.headers || {}) };
+    let r = await fetch(url, baseOptions);
+    if (r.status !== 401) return r;
+    // Stale or missing password — drop and prompt.
+    clearStoredPassword();
+    await ensureAccess();
+    const retryOptions = { ...options, headers: authHeaders(options.headers || {}) };
+    return fetch(url, retryOptions);
+  }
+
+  function ensureAccess() {
+    if (pendingAccess) return pendingAccess;
+    pendingAccess = openAccessModal()
+      .finally(() => { pendingAccess = null; });
+    return pendingAccess;
+  }
+
+  function openAccessModal() {
+    return new Promise((resolve) => {
+      gateEnabled = true;
+      accessError.hidden = true;
+      accessError.textContent = '';
+      accessInput.value = '';
+      accessModal.hidden = false;
+      accessModal.setAttribute('aria-hidden', 'false');
+      setTimeout(() => accessInput.focus(), 30);
+
+      const onSubmit = async (e) => {
+        e.preventDefault();
+        const pw = accessInput.value.trim();
+        if (!pw) return;
+        // Probe /api/health with the candidate password to validate.
+        accessError.hidden = true;
+        try {
+          const probe = await fetch('/api/health', {
+            headers: { 'X-Access-Password': pw }
+          });
+          if (probe.ok) {
+            saveStoredPassword(pw);
+            accessForm.removeEventListener('submit', onSubmit);
+            accessModal.hidden = true;
+            accessModal.setAttribute('aria-hidden', 'true');
+            updateSignOutVisibility();
+            resolve();
+          } else {
+            accessError.textContent = t('access.wrong');
+            accessError.hidden = false;
+            accessInput.select();
+          }
+        } catch {
+          accessError.textContent = t('access.wrong');
+          accessError.hidden = false;
+        }
+      };
+
+      accessForm.addEventListener('submit', onSubmit);
+    });
+  }
+
+  function updateSignOutVisibility() {
+    if (!signOutBtn) return;
+    // Only useful when there's a gate in play AND we have a saved password.
+    signOutBtn.hidden = !(gateEnabled && getStoredPassword());
+  }
+
+  signOutBtn?.addEventListener('click', () => {
+    clearStoredPassword();
+    updateSignOutVisibility();
+    // Close settings modal and immediately prompt for re-entry.
+    closeSettings();
+    ensureAccess();
+  });
+
   // ---- Settings / API keys (stored only in this browser) ----
   const KEYS_STORAGE_KEY = 'ai-council-keys-v1';
   const PROVIDERS = ['anthropic', 'openai', 'google', 'xai'];
@@ -79,9 +182,10 @@
 
   async function fetchHealth() {
     try {
-      const r = await fetch('/api/health');
+      const r = await authFetch('/api/health');
       if (!r.ok) return;
       const j = await r.json();
+      gateEnabled = Boolean(j?.gateEnabled);
       const k = j?.keysConfigured || {};
       envConfigured = {
         anthropic: !!k.claude,
@@ -93,6 +197,7 @@
       /* ignore — keep dots based on local keys only */
     }
     updateStatusDots();
+    updateSignOutVisibility();
   }
 
   function openSettings() {
@@ -101,6 +206,7 @@
       keyInputs[p].value = k[p];
       keyInputs[p].type = keysVisible ? 'text' : 'password';
     }
+    updateSignOutVisibility();
     settingsModal.hidden = false;
     settingsModal.setAttribute('aria-hidden', 'false');
     setTimeout(() => keyInputs.anthropic?.focus(), 30);
@@ -156,7 +262,7 @@
     resultDiv.textContent = t('testing');
 
     try {
-      const r = await fetch('/api/test-key', {
+      const r = await authFetch('/api/test-key', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ provider, apiKey })
@@ -264,7 +370,7 @@
   });
 
   async function streamCouncil(question) {
-    const response = await fetch('/api/council', {
+    const response = await authFetch('/api/council', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
       body: JSON.stringify({ question, keys: currentKeys() })

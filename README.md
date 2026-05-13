@@ -101,6 +101,23 @@ ai-council/
 - Body JSON limit 32kb, câu hỏi tối đa 2000 ký tự (cấu hình qua `MAX_QUESTION_CHARS`).
 - Tất cả output từ AI được render qua `textContent` (no innerHTML) - tránh XSS.
 - Không log câu hỏi hay câu trả lời ra console / file.
+- **Access gate (tùy chọn)**: set `ACCESS_PASSWORD` trong `.env` (hoặc Vercel
+  env vars) để bật. Mọi `/api/*` request phải kèm header `X-Access-Password`
+  khớp. Frontend hỏi password lần đầu truy cập, lưu vào `localStorage`. So sánh
+  password bằng `crypto.timingSafeEqual` (tránh timing attack).
+
+## Triển khai lên Vercel (hoặc cloud khác)
+
+1. Push code lên GitHub (file `.env` không lên do `.gitignore`).
+2. Import repo vào Vercel.
+3. Vào **Project Settings → Environment Variables** và paste từng key:
+   - `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GOOGLE_API_KEY`, `XAI_API_KEY`
+   - `ACCESS_PASSWORD` (chọn một chuỗi đủ mạnh — vd 16 ký tự ngẫu nhiên)
+   - Optionally: `CLAUDE_MODEL`, `OPENAI_MODEL`, `GEMINI_MODEL`, `GROK_MODEL`
+4. Trên dashboard từng provider, đặt **monthly spending cap** (Anthropic / OpenAI / Google billing / xAI) để giới hạn thiệt hại tối đa nếu lộ.
+5. Share URL Vercel + `ACCESS_PASSWORD` cho người thử qua kênh riêng tư (Signal, Telegram…). Nếu lộ → đổi `ACCESS_PASSWORD` trên Vercel và redeploy.
+
+Vercel **không đọc** file `.env` từ git repo — keys chỉ tồn tại trong dashboard config, encrypted at rest.
 
 ---
 

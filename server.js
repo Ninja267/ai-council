@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { timingSafeEqual } from 'node:crypto';
 import { runCouncil } from './lib/council.js';
 import { testClaude } from './lib/providers/claude.js';
 import { testOpenAI } from './lib/providers/openai.js';
@@ -14,6 +15,23 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const PORT = Number(process.env.PORT) || 3000;
 const MAX_QUESTION_CHARS = Number(process.env.MAX_QUESTION_CHARS) || 2000;
+const ACCESS_PASSWORD = (process.env.ACCESS_PASSWORD || '').trim();
+
+// Constant-time access-password check. When ACCESS_PASSWORD is not set
+// the gate is disabled entirely (useful for local dev / open deployments).
+function passwordMatches(provided) {
+  if (!ACCESS_PASSWORD) return true;
+  if (typeof provided !== 'string') return false;
+  const a = Buffer.from(provided);
+  const b = Buffer.from(ACCESS_PASSWORD);
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
+}
+
+function requireAccess(req, res, next) {
+  if (passwordMatches(req.headers['x-access-password'])) return next();
+  res.status(401).json({ error: 'access_required' });
+}
 
 const app = express();
 app.disable('x-powered-by');
@@ -50,6 +68,10 @@ app.use(
     message: { error: 'Bạn đang hỏi nhanh quá. Thử lại sau ít giây nhé.' }
   })
 );
+
+// Access-password gate. Runs after rate-limit so wrong-password attempts still
+// count against the per-IP cap. No-op when ACCESS_PASSWORD env var is unset.
+app.use('/api/', requireAccess);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -99,6 +121,7 @@ app.post('/api/test-key', async (req, res) => {
 app.get('/api/health', (req, res) => {
   res.json({
     ok: true,
+    gateEnabled: Boolean(ACCESS_PASSWORD),
     keysConfigured: {
       claude: Boolean(process.env.ANTHROPIC_API_KEY),
       chatgpt: Boolean(process.env.OPENAI_API_KEY),
@@ -177,7 +200,8 @@ app.listen(PORT, () => {
     ['XAI_API_KEY', 'Grok']
   ].filter(([k]) => !process.env[k]);
 
-  console.log(`\n  AI Council listening on http://localhost:${PORT}\n`);
+  console.log(`\n  AI Council listening on http://localhost:${PORT}`);
+  console.log(`  Access gate: ${ACCESS_PASSWORD ? 'ON (password required)' : 'OFF (open)'}\n`);
   if (missing.length > 0) {
     console.log('  ⚠  Missing API keys (set them in .env):');
     for (const [key, name] of missing) console.log(`     - ${key}  (${name})`);
